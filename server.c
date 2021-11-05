@@ -44,6 +44,7 @@ int main(int argc, char const *argv[]) {
     exit(3);
   }*/
 
+  //UDP IMPLEMENTATION
   while (1) {
     len = sizeof(client);
     printf("waiting for clients\n");
