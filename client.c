@@ -12,34 +12,35 @@ const char message[] = "Hello sockets world\n";
 int main(int argc, char const *argv[]) {
 
   int serverFd;
-  struct sockaddr_in server;
+  struct sockaddr_in6 server;
   socklen_t len;
   int port = 1234;
-  char const *server_ip = "192.168.1.86";
+  char const *server_ip = "fe80::a00:27ff:fedb:3d46";
   char buffer[MAXLINE];
-  char *hello = "Hello server!!";
+ 
   if (argc == 3) {
     server_ip = argv[1];
     port = atoi(argv[2]);
   }
-  serverFd = socket(AF_INET, SOCK_DGRAM, 0);
+
+  serverFd = socket(AF_INET6, SOCK_DGRAM, 0);
+  
   if (serverFd < 0) {
     perror("Cannot create socket");
     exit(1);
   }
   
-  memset(&server,0,sizeof(server));
-  
-  server.sin_family = AF_INET;
-  server.sin_addr.s_addr = inet_addr(server_ip);
-  server.sin_port = htons(port);
+  server.sin6_family = AF_INET6;
+  inet_pton(AF_INET6,server_ip,&server.sin6_addr);
+  server.sin6_port = htons(port);
   
   int n;
   
-  sendto(serverFd, (const char *)hello, strlen(hello),MSG_CONFIRM,(const struct sockaddr *) &server, sizeof(server));
+  sendto(serverFd, (const char *)"Hello server :D", strlen("Hello server :D"),MSG_CONFIRM,(const struct sockaddr *) &server, sizeof(server));
   printf("Hello message sent.\n");
   
-  n = recvfrom (serverFd,(char *)buffer,MAXLINE,MSG_WAITALL,(struct sockaddr *) &server,&len);
+  n = recvfrom(serverFd,(char *)buffer,MAXLINE,0,(struct sockaddr *) &server,&len);
+  
   buffer[n] = '\0';
   printf("Server : %s\n", buffer);
   /* TCP IMPLEMENTATION
@@ -60,6 +61,8 @@ int main(int argc, char const *argv[]) {
   }
   printf("Received %s from server\n", recv);
   */
+  
   close(serverFd);
+  
   return 0;
 }
