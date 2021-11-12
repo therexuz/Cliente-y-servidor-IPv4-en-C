@@ -1,69 +1,54 @@
-#include <stdio.h> // perror, printf
-#include <stdlib.h> // exit, atoi
-#include <unistd.h> // read, write, close
-#include <arpa/inet.h> // sockaddr_in, AF_INET, SOCK_STREAM,
-                       // INADDR_ANY, socket etc...
-#include <string.h> // memset
+#include <stdio.h> //perror,printf0
+#include <stdlib.h> //exit, atoi
+#include <unistd.h> //read, write, close
+#include <arpa/inet.h> //sockaddr_in, AF_INET, SOCK_STREAM, INADDR_ANY, socket, etc...
+#include <string.h> //memset
 
-#define MAXLINE 1024
-int main(int argc, char const *argv[]) {
+int main(int argc,char const *argv[]){
+	
+	int serverFd;
+	struct sockaddr_in6 server, client;
+	socklen_t len;
+	int port = 1234;
+	char buffer[1024];
+	char * hello = "Hello client :D";
 
-  int serverFd/*,clientFd*/;
-  struct sockaddr_in server, client;
-  socklen_t len;
-  int port = 1234;
-  char buffer[1024];
-  if (argc == 2) {
-    port = atoi(argv[1]);
-  }
-  serverFd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (serverFd < 0) {
-    perror("Cannot create socket");
-    exit(1);
-  }
- 
-  memset(&server,0,sizeof(server));
-  memset(&client,0,sizeof(client));
-  
-  server.sin_family = AF_INET;
-  server.sin_addr.s_addr = INADDR_ANY;
-  server.sin_port = htons(port);
- 
-  len = sizeof(server);
-  if (bind(serverFd, (struct sockaddr *)&server, len) < 0) {
-    perror("Cannot bind sokcet");
-    exit(2);
-  }
-  
-  int n;
+	if(argc == 2){
+		port = atoi(argv[1]);
+	}
+	
+	serverFd = socket(AF_INET6,SOCK_DGRAM,0);
+	
+	if(serverFd<0){
+		perror("Cannot create socket");
+		exit(1);
+	}
+	
+	server.sin6_family = AF_INET6;
+	server.sin6_addr = in6addr_any;
+	server.sin6_port = htons(port);
 
-  
-  /* TCP IMPLEMENTATION
-  if (listen(serverFd, 10) < 0) {
-    perror("Listen error");
-    exit(3);
-  }*/
+	len = sizeof(server);
 
-  //UDP IMPLEMENTATION
-  while (1) {
-    len = sizeof(client);
-    printf("waiting for clients\n");
-    
-    memset(buffer, 0, sizeof(buffer));len = sizeof(client);
-    
-    n = recvfrom(serverFd,(char *)buffer,MAXLINE,MSG_WAITALL, (struct sockaddr *) &client,&len);
-  
-    buffer[n] = '\0';
- 
-    char *client_ip = inet_ntoa(client.sin_addr);
-    printf("Accepted new connection from a client %s:%d\n", client_ip, ntohs(client.sin_port));
-   
-    printf("Message sent to client.\n");
-    sendto(serverFd,(const char *)buffer,strlen(buffer),MSG_CONFIRM,(const struct sockaddr *)&client,len);
-    
-    printf("received %s from client\n", buffer);
-  }
-  close(serverFd);
-  
- return 0;
+	if(bind(serverFd,(struct sockaddr *)&server,len)<0){
+	perror("Cannot bin socket");
+		exit(2);
+	}
+
+	while(1){
+		printf("Waiting for clients...\n");
+		len = sizeof(client);
+		memset(&client,0,sizeof(client));
+		int n;
+		n = recvfrom(serverFd,(char *)buffer,1024,0,(struct sockaddr *)&client,&len);
+		char client_ip[INET6_ADDRSTRLEN];
+		inet_ntop(AF_INET6,&client,client_ip,INET6_ADDRSTRLEN); 
+		printf("Accepted new connection from a client %s%:d\n",client_ip,ntohs(client.sin6_port));
+		buffer[n] ='\0';
+		printf("Received message from Client: %s\n",buffer);
+		sendto(serverFd,(const char *)hello,strlen(hello),MSG_CONFIRM,(const struct sockaddr *)&client,len);
+	}
+	
+	close(serverFd);
+	return 0;
 }
