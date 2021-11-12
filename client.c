@@ -4,7 +4,7 @@
 #include <arpa/inet.h> // sockaddr_in, AF_INET, SOCK_STREAM,
                        // INADDR_ANY, socket etc...
 #include <string.h> // strlen, memset
-#include <net/if.h>
+#include <net/if.h> // if_nametoindex
 
 const char message[] = "Hello sockets world\n";
 
